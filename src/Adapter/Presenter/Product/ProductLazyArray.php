@@ -783,8 +783,19 @@ class ProductLazyArray extends AbstractLazyArray
             if (isset($product['stock_quantity'])) {
                 $availableQuantity = $product['stock_quantity'] - $product['quantity_wanted'];
             }
+            
+            $available_date = $product['available_date'];
+            if( !empty($available_date) ) {
+                $formated_date = \DateTime::createFromFormat(
+                    'Y-m-d', 
+                    $available_date
+                );
+                if( $formated_date )
+                    $available_date = $formated_date->format($this->language->date_format_lite);
+            }
+            
             if ($availableQuantity >= 0) {
-                $this->product['availability_date'] = $product['available_date'];
+                $this->product['availability_date'] = $available_date;
 
                 if ($product['quantity'] < $settings->lastRemainingItems) {
                     $this->applyLastItemsInStockDisplayRule();
@@ -796,7 +807,7 @@ class ProductLazyArray extends AbstractLazyArray
             } elseif ($product['allow_oosp']) {
                 $this->product['availability_message'] = $product['available_later'] ? $product['available_later']
                     : Configuration::get('PS_LABEL_OOS_PRODUCTS_BOA', $language->id);
-                $this->product['availability_date'] = $product['available_date'];
+                $this->product['availability_date'] = $available_date;
                 $this->product['availability'] = 'available';
             } elseif ($product['quantity_wanted'] > 0 && $product['quantity'] > 0) {
                 $this->product['availability_message'] = $this->translator->trans(
@@ -812,12 +823,12 @@ class ProductLazyArray extends AbstractLazyArray
                     [],
                     'Shop.Theme.Catalog'
                 );
-                $this->product['availability_date'] = $product['available_date'];
+                $this->product['availability_date'] = $available_date;
                 $this->product['availability'] = 'unavailable';
             } else {
                 $this->product['availability_message'] =
                     Configuration::get('PS_LABEL_OOS_PRODUCTS_BOD', $language->id);
-                $this->product['availability_date'] = $product['available_date'];
+                $this->product['availability_date'] = $available_date;
                 $this->product['availability'] = 'unavailable';
             }
         } else {
